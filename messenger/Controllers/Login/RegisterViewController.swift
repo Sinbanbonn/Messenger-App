@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import FirebaseAuth
 
 class RegisterViewController: UIViewController {
     
@@ -17,8 +18,11 @@ class RegisterViewController: UIViewController {
     
     private var imageView: UIImageView = {
         let imageView = UIImageView()
-        imageView.image = UIImage(systemName: "person")
+        imageView.image = UIImage(systemName: "person.circle")
         imageView.contentMode = .scaleAspectFit
+        imageView.layer.masksToBounds = true
+        imageView.layer.borderWidth = 2
+        imageView.layer.borderColor = UIColor.link.cgColor
         return imageView
     }()
     
@@ -33,7 +37,6 @@ class RegisterViewController: UIViewController {
         field.placeholder = "First name"
         field.leftView = UIView(frame: CGRect(x: 0, y: 0, width: 5, height: 0))
         field.leftViewMode = .always
-        field.isSecureTextEntry = true
         field.backgroundColor = .white
         return field
     }()
@@ -49,7 +52,6 @@ class RegisterViewController: UIViewController {
         field.placeholder = "Last name"
         field.leftView = UIView(frame: CGRect(x: 0, y: 0, width: 5, height: 0))
         field.leftViewMode = .always
-        field.isSecureTextEntry = true
         field.backgroundColor = .white
         return field
     }()
@@ -96,7 +98,7 @@ class RegisterViewController: UIViewController {
     }()
     
     override func viewDidLoad() {
-       
+        
         super.viewDidLoad()
         view.backgroundColor = .white
         title = "Register"
@@ -106,8 +108,8 @@ class RegisterViewController: UIViewController {
                                                             action: #selector(didTapRegister))
         
         registerButton.addTarget(self,
-                              action: #selector(registerButtonTapped),
-                              for: .touchUpInside)
+                                 action: #selector(registerButtonTapped),
+                                 for: .touchUpInside)
         
         emailField.delegate = self
         passwordField.delegate = self
@@ -132,7 +134,7 @@ class RegisterViewController: UIViewController {
         scrollView.isUserInteractionEnabled = true
     }
     @objc private func didTapChangePhoto(){
-        print("didTapChangePhoto was called")
+        presentPhotoActionSheet()
     }
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
@@ -145,15 +147,16 @@ class RegisterViewController: UIViewController {
                                  width: size,
                                  height: size)
         
+        imageView.layer.cornerRadius = imageView.width/2
         firstNameField.frame = CGRect(x: 30 ,
-                                  y: imageView.bottom + 10,
-                                  width: scrollView.width - 60,
-                                  height: 52)
+                                      y: imageView.bottom + 10,
+                                      width: scrollView.width - 60,
+                                      height: 52)
         
         secondNameField.frame = CGRect(x: 30 ,
-                                  y: firstNameField.bottom + 10,
-                                  width: scrollView.width - 60,
-                                  height: 52)
+                                       y: firstNameField.bottom + 10,
+                                       width: scrollView.width - 60,
+                                       height: 52)
         
         emailField.frame = CGRect(x: 30 ,
                                   y: secondNameField.bottom + 10,
@@ -166,9 +169,9 @@ class RegisterViewController: UIViewController {
                                      height: 52)
         
         registerButton.frame = CGRect(x: 30 ,
-                                   y: passwordField.bottom + 10,
-                                   width: scrollView.width - 60,
-                                   height: 52)
+                                      y: passwordField.bottom + 10,
+                                      width: scrollView.width - 60,
+                                      height: 52)
     }
     
     @objc private func registerButtonTapped(){
@@ -183,10 +186,39 @@ class RegisterViewController: UIViewController {
               !email.isEmpty , !password.isEmpty,
               !firstName.isEmpty , !secondName.isEmpty,
               password.count >= 6  else{
-                alertUserLoginError()
-                return
+            alertUserLoginError()
+            return
         }
         // Firebase login
+        DataBaseManager.shared.userExists(with: email, completion: {[weak self] exists in
+            
+            guard let strongSelf = self else {
+                return
+               
+            }
+            guard !exists else {
+                strongSelf.alertUserLoginError()
+                return
+            }
+            
+            FirebaseAuth.Auth.auth().createUser(withEmail: email,
+                                                password: password,
+                                                completion: {authResult , error in
+                
+                guard authResult != nil,  error == nil else{
+                    print("Error crating user")
+                    return
+                }
+                DataBaseManager.shared.insertUser(with: ChatAppUser(firstName: firstName,
+                                                                    lastName: secondName,
+                                                                    emailAddress: email))
+                strongSelf.navigationController?.dismiss(animated: true , completion: nil)
+            })
+            
+        }
+        )
+        
+        
     }
     
     func alertUserLoginError(){
@@ -219,5 +251,62 @@ extension RegisterViewController: UITextFieldDelegate {
         }
         
         return true
+    }
+}
+
+extension RegisterViewController: UIImagePickerControllerDelegate , UINavigationControllerDelegate{
+    
+    func presentPhotoActionSheet(){
+        let actionSheet = UIAlertController(title: "Profile Picture",
+                                            message: "How would you like to select a picture?", preferredStyle: .actionSheet)
+        actionSheet.addAction(UIAlertAction(title: "Cancel",
+                                            style: .cancel,
+                                            handler: nil))
+        
+        actionSheet.addAction(UIAlertAction(title: "Take Photo",
+                                            style: .default,
+                                            handler: {[weak self] _ in
+                                                
+                                                self?.presentCamera()
+        }))
+        
+        actionSheet.addAction(UIAlertAction(title: "Choose Photo",
+                                            style: .default,
+                                            handler: {[weak self]_ in
+            
+                                                self?.presentPhotoPicker()
+        }))
+        
+        present(actionSheet , animated: true)
+        
+    }
+    
+    func presentCamera() {
+        let vc = UIImagePickerController()
+        vc.sourceType = .camera
+        vc.delegate = self
+        vc.allowsEditing = true
+        present(vc , animated: true)
+    }
+    
+    func presentPhotoPicker(){
+        let vc = UIImagePickerController()
+        vc.sourceType = .photoLibrary
+        vc.delegate = self
+        vc.allowsEditing = true
+        present(vc , animated: true)
+    }
+    func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
+        picker.dismiss(animated: true , completion: nil)
+        
+        guard let selectedImage = info[UIImagePickerController.InfoKey.editedImage] else {
+            return
+            
+        }
+        self.imageView.image = (selectedImage as! UIImage)
+    }
+    
+    func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
+        picker.dismiss(animated: true , completion: nil)
     }
 }
