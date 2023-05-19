@@ -7,8 +7,11 @@
 
 import UIKit
 import FirebaseAuth
+import JGProgressHUD
 
 class RegisterViewController: UIViewController {
+    
+    private let spinner = JGProgressHUD(style: .dark)
     
     private let scrollView: UIScrollView =  {
         let scrollView = UIScrollView()
@@ -189,12 +192,19 @@ class RegisterViewController: UIViewController {
             alertUserLoginError()
             return
         }
+        
+        spinner.show(in: view)
+        
         // Firebase login
         DataBaseManager.shared.userExists(with: email, completion: {[weak self] exists in
             
             guard let strongSelf = self else {
                 return
                
+            }
+            
+            DispatchQueue.main.async {
+                self?.spinner.dismiss()
             }
             guard !exists else {
                 strongSelf.alertUserLoginError()
@@ -209,9 +219,32 @@ class RegisterViewController: UIViewController {
                     print("Error crating user")
                     return
                 }
-                DataBaseManager.shared.insertUser(with: ChatAppUser(firstName: firstName,
-                                                                    lastName: secondName,
-                                                                    emailAddress: email))
+                let chatUser = ChatAppUser(firstName: firstName,
+                                           lastName: secondName,
+                                           emailAddress: email)
+                                           
+                DataBaseManager.shared.insertUser(with: chatUser  , completion: {success in
+                    if success{
+                        //upload image
+                        guard let image = strongSelf.imageView.image ,
+                                let data = image.pngData() else {
+                            return
+                        }
+                        let fileName = chatUser.profilePictureFileNAme
+                        StorageManager.shared.uploadProfilePicture(with: data,
+                                                                   fileName: fileName,
+                                                                   completion: { result in
+                            switch result {
+                            case .success(let downloadUrl):
+                                UserDefaults.standard.set(downloadUrl ,forKey: "profile_picture_url")
+                                print(downloadUrl)
+                            case .failure(let error):
+                                print("Storage manager error:  \(error)")
+                            }
+                            
+                        })
+                    }
+                })
                 strongSelf.navigationController?.dismiss(animated: true , completion: nil)
             })
             
