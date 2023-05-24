@@ -92,17 +92,33 @@ class ConversationViewController: UIViewController {
     }
     @objc func didTapComposeButton(){
         let vc = NewConversationViewController()
-        vc.completion = {[weak self] result in
-            print(result)
-            self?.createNewConversation(result: result)
+        vc.completion = { [weak self] result in
+            guard let strongSelf = self else {
+                return
+
+            }
+            let currentConversations = strongSelf.conversations
+
+            if let targetConversation = currentConversations.first(where: {
+                $0.otherUserEmail == DataBaseManager.safeEmail(emailAdress: result.email)
+            }) {
+                let vc = ChatViewController(with: targetConversation.otherUserEmail, id: targetConversation.id)
+                vc.isNewConversation = false
+                vc.title = targetConversation.name
+                vc.navigationItem.largeTitleDisplayMode = .never
+                strongSelf.navigationController?.pushViewController(vc, animated: true)
+            }
+            else {
+                strongSelf.createNewConversation(result: result)
+            }
         }
-        let navVc = UINavigationController(rootViewController: vc)
-        present(navVc , animated: true)
+        let navVC = UINavigationController(rootViewController: vc)
+        present(navVC, animated: true)
     }
     
-    private func createNewConversation(result : [String : String]){
-        guard let name = result["name"] ,
-              let email = result["email"] else {return}
+    private func createNewConversation(result : SearchResult){
+        let name = result.name
+        let email = DataBaseManager.safeEmail(emailAdress: result.email)
         
         let vc = ChatViewController(with: email, id: nil )
         vc.isNewConversation = true
