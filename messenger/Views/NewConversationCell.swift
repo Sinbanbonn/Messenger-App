@@ -45,7 +45,7 @@ class NewConversationCell: UITableViewCell {
                                      width: 70,
                                      height: 70)
 
-        userNameLabel.frame = CGRect(x: userImageView.right + 10,
+        userNameLabel.frame = CGRect(x: userImageView.right + 100,
                                      y: 20,
                                      width: contentView.width - 20 - userImageView.width,
                                      height: 50)
