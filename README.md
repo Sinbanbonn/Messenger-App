@@ -9,27 +9,27 @@ Messenger-App is a simple messaging app developed as a part of my portfolio proj
 ### Registration and Authentication
 
 Users can easily sign up using their name, email address, and password. After successful registration, they can log in and start communicating.
-<img src="![registration](https://github.com/Sinbanbonn/Messenger-App/assets/91285990/ccb1f7d3-edda-4795-a291-c72259c54e85)" width="300">
-<img src="![authj](https://github.com/Sinbanbonn/Messenger-App/assets/91285990/e1617590-7d19-4866-8bdd-104136a6755f)" width="300">
+<img src="https://github.com/Sinbanbonn/Messenger-App/assets/91285990/ccb1f7d3-edda-4795-a291-c72259c54e85" width="300">
+<img src="https://github.com/Sinbanbonn/Messenger-App/assets/91285990/e1617590-7d19-4866-8bdd-104136a6755f" width="300">
 
 
 ### Real-Time Message Exchange
 
 Registered users can send text messages to each other in real-time, enabling quick and efficient communication.
 
-<img src="![userChat](https://github.com/Sinbanbonn/Messenger-App/assets/91285990/01930bf2-2c01-44b6-a4af-cbeece8c3e90)" width="300">
+<img src="https://github.com/Sinbanbonn/Messenger-App/assets/91285990/01930bf2-2c01-44b6-a4af-cbeece8c3e90" width="300">
 
 ### User Profiles
 
 Each user has their own profile page, where they can view and edit personal information, add a profile picture, and manage account settings.
 
-<img src="![profile](https://github.com/Sinbanbonn/Messenger-App/assets/91285990/6126601b-afdb-4a02-9c92-944a840f1b4c)" width="300">
+<img src="https://github.com/Sinbanbonn/Messenger-App/assets/91285990/6126601b-afdb-4a02-9c92-944a840f1b4c" width="300">
 
 ### Contact Search
 
 The app provides a simple yet effective contact search feature, allowing users to find and connect with others by searching for their names or email addresses.
 
-<img src="![searchUser](https://github.com/Sinbanbonn/Messenger-App/assets/91285990/c6beaa6b-4a20-40da-ade5-09ed3a7c45f9)" width="300">
+<img src="https://github.com/Sinbanbonn/Messenger-App/assets/91285990/c6beaa6b-4a20-40da-ade5-09ed3a7c45f9" width="300">
 
 ## Technologies and Architecture
 
